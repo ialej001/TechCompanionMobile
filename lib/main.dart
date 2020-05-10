@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:tech_companion_mobile/GraphQLConf.dart';
 import 'package:tech_companion_mobile/serviceCalls.dart';
+
+GraphQLConfiguration graphQLConfiguration = GraphQLConfiguration();
 
 void main() {
   runApp(MyApp());
@@ -10,17 +13,12 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final HttpLink httpLink = HttpLink(uri: 'http://10.0.2.2:9000/graphql');
-
-    final ValueNotifier<GraphQLClient> client = ValueNotifier<GraphQLClient>(
-        GraphQLClient(link: httpLink, cache: InMemoryCache()));
-
     return GraphQLProvider(
-        client: client,
+        client: graphQLConfiguration.client,
         child: MaterialApp(
           title: 'TechCompanion',
           theme: ThemeData(
-            primarySwatch: Colors.blue,
+            primarySwatch: Colors.red,
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
           home: MyHomePage(title: 'TechCompanion'),
@@ -84,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.red,
               ),
               child: Text(
                 'Where to?',
