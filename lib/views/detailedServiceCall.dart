@@ -2,8 +2,9 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:tech_companion_mobile/views/workDoneDialog.dart';
 
-import 'WorkOrder.dart';
+import 'package:tech_companion_mobile/models/WorkOrder.dart';
 
 class DetailScreen extends StatefulWidget {
   final WorkOrder workorder;
@@ -36,10 +37,19 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   void _submitWorkOrder() {
-    log(this.workOrder.timeStarted.toString() + " " + this.workOrder.timeEnded.toString());
+    log(this.workOrder.timeStarted.toString() +
+        " " +
+        this.workOrder.timeEnded.toString());
   }
 
-  void _addWorkPerformed() {
+  void _addWorkPerformed(Issue issue) async {
+    String location = issue.location;
+    log("tapped issue: $location");
+    WorkOrder updatedWorkOrder = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WorkDoneWindow(),
+        ));
     
   }
 
@@ -50,7 +60,7 @@ class _DetailScreenState extends State<DetailScreen> {
         body: Container(
             child: Column(children: <Widget>[
           _buildCustomerInfo(context, workOrder),
-          _buildIssues(context, workOrder.getIssues()),
+          _buildIssues(context, workOrder.getIssues(), _addWorkPerformed),
           Expanded(
               child: Align(
                   alignment: Alignment.bottomCenter,
@@ -102,7 +112,8 @@ Widget _buildCustomerInfo(BuildContext context, WorkOrder workOrder) {
       ]));
 }
 
-Widget _buildIssues(BuildContext context, List<Issue> issues) {
+Widget _buildIssues(
+    BuildContext context, List<Issue> issues, void workPerformed(Issue issue)) {
   return Container(
       margin: EdgeInsets.only(top: 15, bottom: 15, left: 25, right: 25),
       child: Column(
@@ -120,13 +131,11 @@ Widget _buildIssues(BuildContext context, List<Issue> issues) {
               child: ListView.separated(
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
-                    return Row(
-                      children: <Widget>[
-                        Text("At " +
-                            issues[index].location +
-                            ', ' +
-                            issues[index].problem)
-                      ],
+                    return ListTile(
+                      title:
+                          Text("Problem at " + issues[index].location + ':\n'),
+                      subtitle: Text(issues[index].problem),
+                      onTap: () => workPerformed(issues[index]),
                     );
                   },
                   separatorBuilder: (context, index) {
@@ -161,7 +170,9 @@ Widget _workOrderState(_DetailScreenState state, WorkOrder workOrder) {
     return RaisedButton(
         onPressed: state._setTimeStarted, child: Text('Start time'));
   else if (workOrder.timeEnded == null)
-    return RaisedButton(onPressed: state._setTimeEnded, child: Text('Stop time'));
+    return RaisedButton(
+        onPressed: state._setTimeEnded, child: Text('Stop time'));
   else
-    return RaisedButton(onPressed: state._submitWorkOrder, child: Text('Submit'));
+    return RaisedButton(
+        onPressed: state._submitWorkOrder, child: Text('Submit'));
 }

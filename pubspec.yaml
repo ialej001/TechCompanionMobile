@@ -23,6 +23,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  sqflite:
+  path_provider:
+  autocomplete_textfield:
   http: 0.12.1
   toast: ^0.1.3
   shared_preferences: ^0.5.3+1

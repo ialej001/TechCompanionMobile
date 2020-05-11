@@ -1,4 +1,4 @@
-import 'package:tech_companion_mobile/WorkOrder.dart';
+import 'package:tech_companion_mobile/models/WorkOrder.dart';
 
 class QueryMutation {
   String submitWorkOrder(WorkOrder workOrder) {
@@ -31,4 +31,16 @@ class QueryMutation {
       }
     }
     ''';
+
+  String getParts = """
+    query fetchParts {
+      fetchAllParts {
+        partNumber
+        description
+        name
+        price
+        quantity
+        }
+      }
+    """;
 }

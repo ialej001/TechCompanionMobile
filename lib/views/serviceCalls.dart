@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:tech_companion_mobile/QueryMutation.dart';
+import 'package:tech_companion_mobile/graphql/QueryMutation.dart';
 
-import 'WorkOrder.dart';
+import 'package:tech_companion_mobile/models/WorkOrder.dart';
 import 'detailedServiceCall.dart';
 class ServiceCallView extends StatefulWidget {
   @override

@@ -1,4 +1,5 @@
 class Part {
+  int id;
   String partNumber;
   String description;
   String name;
