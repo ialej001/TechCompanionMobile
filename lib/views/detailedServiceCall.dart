@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:tech_companion_mobile/database/blocs/blocProvider.dart';
+import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
 import 'package:tech_companion_mobile/views/workDoneDialog.dart';
 
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
@@ -48,7 +50,7 @@ class _DetailScreenState extends State<DetailScreen> {
     WorkOrder updatedWorkOrder = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => WorkDoneWindow(),
+          builder: (context) => BlocProvider(bloc: PartsBloc(), child: WorkDoneWindow()),
         ));
     
   }

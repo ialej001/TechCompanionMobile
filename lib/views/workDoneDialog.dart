@@ -1,5 +1,6 @@
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
+import 'package:tech_companion_mobile/database/blocs/blocProvider.dart';
 import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
 
 import 'package:tech_companion_mobile/models/Part.dart';
@@ -29,9 +30,16 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
   // variables
   Issue issue;
   String workPerformed;
-  List<Part> partsUsed;
+  List<Part> partsUsed = List<Part>();
 
   _WorkDoneWindow(this.issue, this.workPerformed, this.partsUsed);
+
+  @override
+  void initState() {
+    super.initState();
+
+    _partsBloc = BlocProvider.of<PartsBloc>(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,14 +52,14 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
                 BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
             child: Column(children: <Widget>[
               _workDoneBox(workDoneField),
-              _partSearchBar(searchTextField, searchController),
-              _partsListView(),
+              _partSearchBar(_insertPartUsed, searchTextField, searchController),
+              _partsListView(partsUsed),
             ]),
           ),
         )));
   }
 
-  Widget _partSearchBar(
+  Widget _partSearchBar(void _insertPartUsed(List<Part> parts, Part part),
       AutoCompleteTextField searchTextField, TextEditingController controller) {
     return Container(
         child: Row(
@@ -71,8 +79,7 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
                           border: InputBorder.none,
                           hintText: "name or description"),
                       itemSubmitted: (item) {
-                        setState(() => searchTextField
-                            .textField.controller.text = item.description);
+                        _insertPartUsed(parts, item);
                       },
                       key: key,
                       suggestions: parts,
@@ -118,7 +125,30 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
     );
   }
 
-  Widget _partsListView() {
-    return Container();
+  Widget _partsListView(List<Part> parts) {
+    if (parts.isNotEmpty) {
+      return Container(
+          height: 50,
+          child: ListView.builder(
+            itemCount: parts.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(parts[index].name +
+                    ", Quantity Used: " +
+                    parts[index].quantity.toString()),
+                subtitle: Text("Description: " + parts[index].description),
+              );
+            },
+          ));
+    } else {
+      return Container();
+    }
+  }
+
+  void _insertPartUsed(List<Part> parts, Part part) {
+    // add the part to partsUsed
+    setState(() {
+      parts.add(part);
+    });
   }
 }

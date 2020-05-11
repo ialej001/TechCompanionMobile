@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
           home: MyHomePage(title: 'TechCompanion'),
           routes: <String, WidgetBuilder>{
             '/detailedService call': (BuildContext context) =>
-                ServiceCallView(),
+                 ServiceCallView(),
           },
         ));
   }

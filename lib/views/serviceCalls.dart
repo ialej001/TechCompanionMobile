@@ -4,6 +4,7 @@ import 'package:tech_companion_mobile/graphql/QueryMutation.dart';
 
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
 import 'detailedServiceCall.dart';
+
 class ServiceCallView extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _ServiceCalls();
