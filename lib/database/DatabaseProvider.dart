@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:tech_companion_mobile/graphql/GraphQLConf.dart';
+import 'package:tech_companion_mobile/graphql/QueryMutation.dart';
 
 import 'package:tech_companion_mobile/models/Part.dart';
 
@@ -69,5 +73,23 @@ class DatabaseProvider {
   deleteAllParts() async {
     final db = await database;
     db.delete("Part");
+  }
+
+  loadDatabase() async {
+    List<dynamic> parts = new List<dynamic>();
+    if (_database == null) {
+      GraphQLConfiguration()
+          .clientToQuery()
+          .query(QueryOptions(
+              documentNode: gql(QueryMutation().getParts), pollInterval: 10))
+          .then((QueryResult result) => {
+                parts =
+                    result.data['parts'].map((i) => Part.fromJson(i)).toList(),
+                parts.forEach((part) {
+                  log(part.toString());
+                  addPart(part);
+                }),
+              });
+    }
   }
 }

@@ -2,7 +2,6 @@ class Part {
   int id;
   String partNumber;
   String description;
-  String name;
   double price;
   int quantity;
 
@@ -20,4 +19,12 @@ class Part {
         "price": price,
         "quantity": quantity
       };
+  
+  factory Part.fromJson(Map<String, dynamic> json) {
+    return new Part(
+      description: json['description'],
+      partNumber: json['partNumber'],
+      price: json['price'],
+      quantity: 0);
+  }
 }

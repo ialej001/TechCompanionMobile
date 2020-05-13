@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:tech_companion_mobile/database/blocs/blocProvider.dart';
+import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
 import 'package:tech_companion_mobile/graphql/GraphQLConf.dart';
+import 'package:tech_companion_mobile/views/Inventory.dart';
 import 'package:tech_companion_mobile/views/serviceCalls.dart';
 
 GraphQLConfiguration graphQLConfiguration = GraphQLConfiguration();
@@ -24,7 +27,8 @@ class MyApp extends StatelessWidget {
           home: MyHomePage(title: 'TechCompanion'),
           routes: <String, WidgetBuilder>{
             '/detailedService call': (BuildContext context) =>
-                 ServiceCallView(),
+                ServiceCallView(),
+            '/inventory': (BuildContext context) => InventoryWindow(),
           },
         ));
   }
@@ -97,6 +101,17 @@ class _MyHomePageState extends State<MyHomePage> {
               title: Text('Service Calls'),
               onTap: () {
                 Navigator.popAndPushNamed(context, '/detailedService call');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.work),
+              title: Text('Inventory'),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => BlocProvider(
+                            child: InventoryWindow(), bloc: PartsBloc())));
               },
             )
           ],

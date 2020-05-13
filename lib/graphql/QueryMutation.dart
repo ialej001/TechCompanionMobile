@@ -34,12 +34,10 @@ class QueryMutation {
 
   String getParts = """
     query fetchParts {
-      fetchAllParts {
+      parts {
         partNumber
         description
-        name
         price
-        quantity
         }
       }
     """;
