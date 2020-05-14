@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 
+import 'Part.dart';
+
 class WorkOrders {
   final List<WorkOrder> workOrders;
 
@@ -23,25 +25,34 @@ class WorkOrders {
 }
 
 class WorkOrder {
+  final stringId;
   final Customer customer;
-  final Issues issues;
+  Issues issues;
   final bool isComplete;
   TimeOfDay timeStarted;
   TimeOfDay timeEnded;
+  List<Part> partsUsed;
+  List<String> workPerformed;
   
   WorkOrder({
+    this.stringId,
     this.customer,
     this.issues,
     this.isComplete,
     this.timeStarted,
-    this.timeEnded
+    this.timeEnded,
+    this.partsUsed,
+    this.workPerformed
   });
 
   factory WorkOrder.fromJson(Map<String, dynamic> json) {
     return new WorkOrder(
+      stringId: json['string_id'],
       customer: Customer.fromJson(json['customer']),
       issues: Issues.fromJson(json['issues']),
-      isComplete: json['isComplete']
+      isComplete: json['isComplete'],
+      workPerformed: List<String>(),
+      partsUsed: List<Part>()
     );
   }
 
@@ -77,7 +88,7 @@ class Customer {
 }
 
 class Issues {
-  final List<Issue> issues;
+  List<Issue> issues;
 
   Issues({
     this.issues
@@ -93,25 +104,32 @@ class Issues {
   int length() {
     return this.issues.length;
   }
-
-  Issue getIssue(int index) {
-    return this.issues[index];
-  }
 }
 
 class Issue {
   final String location;
   final String problem;
+  String resolution;
 
   Issue({
     this.location,
-    this.problem
+    this.problem,
+    this.resolution
   });
 
   factory Issue.fromJson(Map<String, dynamic> json) {
     return new Issue(
       location: json['location'], 
-      problem: json['problem']
+      problem: json['problem'],
+      resolution: ""
     );
   }
+}
+
+class WorkDoneForIssue {
+  List<Part> partsUsed;
+  List<String> workPerformed;
+  int index;
+
+  WorkDoneForIssue(this.partsUsed, this.workPerformed, this.index);
 }

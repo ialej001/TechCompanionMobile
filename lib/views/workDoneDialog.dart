@@ -8,21 +8,23 @@ import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
 import 'package:tech_companion_mobile/models/Part.dart';
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
 
-class WorkDoneWindow extends StatefulWidget {
-  final Issue issue;
-  final String workPerformed = "";
-  final List<Part> partsUsed = List<Part>();
+class WorkDoneView extends StatefulWidget {
+  final List<String> workPerformed;
+  final List<Part> partsUsed;
+  final int issueIndex;
 
-  WorkDoneWindow({Key key, this.issue}) : super(key: key);
+  WorkDoneView({Key key, this.workPerformed, this.partsUsed, this.issueIndex})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() =>
-      _WorkDoneWindow(this.issue, this.workPerformed, this.partsUsed);
+      _WorkDoneView(this.workPerformed, this.partsUsed, this.issueIndex);
 }
 
-class _WorkDoneWindow extends State<WorkDoneWindow> {
+class _WorkDoneView extends State<WorkDoneView> {
   PartsBloc _partsBloc;
   GlobalKey<AutoCompleteTextFieldState<Part>> key = new GlobalKey();
+  final _formKey = GlobalKey<FormState>();
 
   // text controllers
   TextEditingController workDoneField = TextEditingController();
@@ -30,43 +32,73 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
   AutoCompleteTextField searchTextField;
 
   // variables
-  Issue issue;
-  String workPerformed;
-  List<Part> partsUsed = List<Part>();
+  List<String> workPerformed;
+  List<Part> partsUsed;
+  int issueIndex;
 
-  _WorkDoneWindow(this.issue, this.workPerformed, this.partsUsed);
+  _WorkDoneView(this.workPerformed, this.partsUsed, this.issueIndex);
+
+  @override
+  void dispose() {
+    _partsBloc.dispose();
+    workDoneField.dispose();
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
 
     _partsBloc = BlocProvider.of<PartsBloc>(context);
+
+    if (workPerformed.length > issueIndex) {
+      workDoneField.text = workPerformed[issueIndex];
+    }
+    partsUsed = partsUsed;
+  }
+
+  void _saveChanges() {
+    if (workPerformed.length == issueIndex) {
+      workPerformed.add(workDoneField.text);
+    } else {
+      workPerformed[issueIndex] = workDoneField.text;
+    }
+
+    Navigator.pop(
+        context, WorkDoneForIssue(partsUsed, workPerformed, issueIndex));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("What did you do for this problem?"),
+          title: Text("Problem resolution"),
+          actions: <Widget>[
+            IconButton(icon: Icon(Icons.check), onPressed: _saveChanges)
+          ],
         ),
         body: Container(
             padding: EdgeInsets.only(left: 10, right: 10),
             child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints:
-                    BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+                child: ConstrainedBox(
+              constraints:
+                  BoxConstraints(maxWidth: MediaQuery.of(context).size.width),
+              child: Form(
+                key: _formKey,
                 child: Column(children: <Widget>[
                   _workDoneBox(workDoneField),
                   _partSearchBar(searchTextField, searchController),
                   _partsListView(partsUsed),
                 ]),
               ),
-            )));
+            ))));
   }
 
   Widget _partSearchBar(
       AutoCompleteTextField searchTextField, TextEditingController controller) {
     return Container(
+        margin: EdgeInsets.only(top: 15),
         width: MediaQuery.of(context).size.width,
         child: StreamBuilder<List<Part>>(
             stream: _partsBloc.parts,
@@ -78,16 +110,14 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
                 return AutoCompleteTextField<Part>(
                   style: TextStyle(color: Colors.black, fontSize: 16.0),
                   decoration: InputDecoration(
-                      border: InputBorder.none,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(5.0))),
                       hintText: "Add part by description..."),
                   itemSubmitted: (item) {
-                    // _insertPartUsed(parts, item);
-                    log('submit');
                     setState(() {
                       item.quantity = 1;
                       partsUsed.add(item);
                     });
-                    log(partsUsed.length.toString());
                   },
                   clearOnSubmit: true,
                   key: key,
@@ -95,12 +125,20 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
                   suggestionsAmount: 10,
                   minLength: 3,
                   itemBuilder: (context, item) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Flexible(child: Text(item.description))
-                      ],
-                    );
+                    return Container(
+                        padding: EdgeInsets.only(bottom: 5),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Flexible(
+                                child: Text(
+                              item.description,
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ))
+                          ],
+                        ));
                   },
                   itemSorter: (a, b) {
                     return a.description.compareTo(b.description);
@@ -120,14 +158,19 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
   Widget _workDoneBox(TextEditingController workDoneField) {
     return Container(
       height: 160,
+      padding: EdgeInsets.only(top: 15),
       child: TextField(
           maxLength: 200,
           keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.done,
+          autofocus: false,
           maxLines: 20,
           controller: workDoneField,
           decoration: InputDecoration(
-              icon: Icon(Icons.perm_identity),
-              labelText: "Work performed for this issue:")),
+              prefixIcon: Icon(Icons.perm_identity),
+              labelText: "Work performed for this issue:",
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(5.0))))),
     );
   }
 
@@ -137,17 +180,46 @@ class _WorkDoneWindow extends State<WorkDoneWindow> {
           height: 300,
           child: ListView.builder(
             itemCount: parts.length,
-            itemBuilder: (context, index) { //TODO rework ListTile into Row w/ two children, ListTile & Row with two icons and quant number
+            itemBuilder: (context, index) {
+              //TODO rework ListTile into Row w/ two children, ListTile & Row with two icons and quant number
               return ListTile(
-                title: Text(parts[index].description +
-                    ", Quantity Used: " +
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  child: IconButton(
+                      icon: Icon(Icons.remove),
+                      onPressed: () {
+                        setState(() {
+                          if (parts[index].quantity == 0) return;
+
+                          parts[index].quantity--;
+                        });
+                      }),
+                ),
+                title: Text(parts[index].description
+                    ),
+                subtitle: Text(//parts[index].description +
+                     ", Quantity Used: " +
                     parts[index].quantity.toString()),
-                subtitle: Text("Description: " + parts[index].description),
+                trailing: Container(
+                    width: 48,
+                    height: 48,
+                    child: IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: () {
+                          setState(() {
+                            parts[index].quantity++;
+                          });
+                        })),
               );
             },
           ));
     } else {
-      return Container(padding: EdgeInsets.only(top: 120),child: Center(child: Text("No parts used."),));
+      return Container(
+          padding: EdgeInsets.only(top: 120, bottom: 160),
+          child: Center(
+            child: Text("No parts used."),
+          ));
     }
   }
 }

@@ -42,17 +42,36 @@ class _DetailScreenState extends State<DetailScreen> {
     log(this.workOrder.timeStarted.toString() +
         " " +
         this.workOrder.timeEnded.toString());
+    if (workOrder.workPerformed.length < workOrder.issues.length()) {
+      // TODO change to toast?
+      log('all issues need a description of work completed');
+      return;
+    }
+    log(workOrder.workPerformed.toString());
   }
 
-  void _addWorkPerformed(Issue issue) async {
-    String location = issue.location;
-    log("tapped issue: $location");
-    WorkOrder updatedWorkOrder = await Navigator.push(
+  void _addWorkPerformed(int issueIndex) async {
+    int length = workOrder.partsUsed.length;
+    log(length.toString());
+
+    WorkDoneForIssue workDone = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => BlocProvider(bloc: PartsBloc(), child: WorkDoneWindow()),
+          builder: (context) => BlocProvider(
+              bloc: PartsBloc(),
+              child: WorkDoneView(
+                workPerformed: workOrder.workPerformed,
+                partsUsed: workOrder.partsUsed,
+                issueIndex: issueIndex,
+              )),
         ));
     
+
+    if (workDone != null) {
+      // workPerformed first
+      log(workOrder.workPerformed.toString());
+      log(workOrder.partsUsed.toString());
+    }
   }
 
   @override
@@ -60,6 +79,7 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
         appBar: AppBar(title: Text("Details...")),
         body: Container(
+          height: 700,
             child: Column(children: <Widget>[
           _buildCustomerInfo(context, workOrder),
           _buildIssues(context, workOrder.getIssues(), _addWorkPerformed),
@@ -115,7 +135,7 @@ Widget _buildCustomerInfo(BuildContext context, WorkOrder workOrder) {
 }
 
 Widget _buildIssues(
-    BuildContext context, List<Issue> issues, void workPerformed(Issue issue)) {
+    BuildContext context, List<Issue> issues, void workPerformed(int issueIndex)) {
   return Container(
       margin: EdgeInsets.only(top: 15, bottom: 15, left: 25, right: 25),
       child: Column(
@@ -137,7 +157,7 @@ Widget _buildIssues(
                       title:
                           Text("Problem at " + issues[index].location + ':\n'),
                       subtitle: Text(issues[index].problem),
-                      onTap: () => workPerformed(issues[index]),
+                      onTap: () => workPerformed(index),
                     );
                   },
                   separatorBuilder: (context, index) {
