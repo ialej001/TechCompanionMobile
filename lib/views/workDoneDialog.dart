@@ -1,24 +1,20 @@
-import 'dart:developer';
-
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:tech_companion_mobile/database/blocs/blocProvider.dart';
 import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
-
 import 'package:tech_companion_mobile/models/Part.dart';
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
 
 class WorkDoneView extends StatefulWidget {
-  final List<String> workPerformed;
   final List<Part> partsUsed;
-  final int issueIndex;
+  final Issue issue;
 
-  WorkDoneView({Key key, this.workPerformed, this.partsUsed, this.issueIndex})
+  WorkDoneView({Key key, this.partsUsed, this.issue})
       : super(key: key);
 
   @override
   State<StatefulWidget> createState() =>
-      _WorkDoneView(this.workPerformed, this.partsUsed, this.issueIndex);
+      _WorkDoneView(this.partsUsed, this.issue);
 }
 
 class _WorkDoneView extends State<WorkDoneView> {
@@ -35,8 +31,9 @@ class _WorkDoneView extends State<WorkDoneView> {
   List<String> workPerformed;
   List<Part> partsUsed;
   int issueIndex;
+  Issue issue;
 
-  _WorkDoneView(this.workPerformed, this.partsUsed, this.issueIndex);
+  _WorkDoneView(this.partsUsed, this.issue);
 
   @override
   void dispose() {
@@ -51,19 +48,15 @@ class _WorkDoneView extends State<WorkDoneView> {
     super.initState();
 
     _partsBloc = BlocProvider.of<PartsBloc>(context);
-
-    if (workPerformed.length > issueIndex) {
-      workDoneField.text = workPerformed[issueIndex];
+    
+    if (issue.resolution != null) {
+      workDoneField.text = issue.resolution;
     }
     partsUsed = partsUsed;
   }
 
   void _saveChanges() {
-    if (workPerformed.length == issueIndex) {
-      workPerformed.add(workDoneField.text);
-    } else {
-      workPerformed[issueIndex] = workDoneField.text;
-    }
+    issue.resolution = workDoneField.text;
 
     Navigator.pop(
         context, WorkDoneForIssue(partsUsed, workPerformed, issueIndex));
@@ -181,7 +174,6 @@ class _WorkDoneView extends State<WorkDoneView> {
           child: ListView.builder(
             itemCount: parts.length,
             itemBuilder: (context, index) {
-              //TODO rework ListTile into Row w/ two children, ListTile & Row with two icons and quant number
               return ListTile(
                 leading: Container(
                   width: 48,
@@ -198,8 +190,8 @@ class _WorkDoneView extends State<WorkDoneView> {
                 ),
                 title: Text(parts[index].description
                     ),
-                subtitle: Text(//parts[index].description +
-                     ", Quantity Used: " +
+                subtitle: Text(
+                     "Quantity Used: " +
                     parts[index].quantity.toString()),
                 trailing: Container(
                     width: 48,

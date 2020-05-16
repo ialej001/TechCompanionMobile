@@ -1,3 +1,5 @@
+
+
 class Part {
   int id;
   String partNumber;
@@ -19,12 +21,27 @@ class Part {
         "price": price,
         "quantity": quantity
       };
-  
+
   factory Part.fromJson(Map<String, dynamic> json) {
     return new Part(
-      description: json['description'],
-      partNumber: json['partNumber'],
-      price: json['price'],
-      quantity: 0);
+        description: json['description'],
+        partNumber: json['partNumber'],
+        price: json['price'],
+        quantity: getQuantity(json['quantity']));
   }
+
+  Map<String, dynamic> toJson() => {
+    'description': description,
+    'partNumber': partNumber,
+    'price': price,
+    'quantity': quantity
+  };
+}
+
+int getQuantity(dynamic json) {
+  if (json == null) {
+    return 0;
+  }
+
+  return json;
 }

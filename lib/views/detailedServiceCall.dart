@@ -1,11 +1,10 @@
 import 'dart:developer';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:tech_companion_mobile/database/blocs/blocProvider.dart';
 import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
+import 'package:tech_companion_mobile/http/HttpService.dart';
 import 'package:tech_companion_mobile/views/workDoneDialog.dart';
-
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
 
 class DetailScreen extends StatefulWidget {
@@ -23,55 +22,43 @@ class _DetailScreenState extends State<DetailScreen> {
   _DetailScreenState(this.workOrder);
 
   // time functions
-
   void _setTimeStarted() {
     setState(() {
-      this.workOrder.timeStarted = TimeOfDay.now();
+      this.workOrder.timeStarted = new DateTime.now();
       debugPrint(workOrder.timeStarted.toString());
     });
   }
 
   void _setTimeEnded() {
     setState(() {
-      this.workOrder.timeEnded = TimeOfDay.now();
+      this.workOrder.timeEnded = new DateTime.now();
       debugPrint(workOrder.timeEnded.toString());
     });
   }
 
-  void _submitWorkOrder() {
-    log(this.workOrder.timeStarted.toString() +
-        " " +
-        this.workOrder.timeEnded.toString());
-    if (workOrder.workPerformed.length < workOrder.issues.length()) {
-      // TODO change to toast?
-      log('all issues need a description of work completed');
-      return;
-    }
-    log(workOrder.workPerformed.toString());
-  }
-
   void _addWorkPerformed(int issueIndex) async {
-    int length = workOrder.partsUsed.length;
-    log(length.toString());
-
-    WorkDoneForIssue workDone = await Navigator.push(
+    await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => BlocProvider(
               bloc: PartsBloc(),
               child: WorkDoneView(
-                workPerformed: workOrder.workPerformed,
-                partsUsed: workOrder.partsUsed,
-                issueIndex: issueIndex,
-              )),
+                  partsUsed: workOrder.partsUsed,
+                  issue: workOrder.issues.issues[issueIndex])),
         ));
-    
+  }
 
-    if (workDone != null) {
-      // workPerformed first
-      log(workOrder.workPerformed.toString());
-      log(workOrder.partsUsed.toString());
-    }
+  void _submitWorkOrder(WorkOrder workOrder) {
+    HttpService httpService = HttpService();
+
+    httpService.sendCompleteWorkOrder(workOrder).then((result) {
+      if (result != 200) {
+        log('error');
+        return;
+      }
+
+      Navigator.of(context).pop();
+    });
   }
 
   @override
@@ -79,122 +66,153 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
         appBar: AppBar(title: Text("Details...")),
         body: Container(
-          height: 700,
+            // height: 700,
             child: Column(children: <Widget>[
           _buildCustomerInfo(context, workOrder),
-          _buildIssues(context, workOrder.getIssues(), _addWorkPerformed),
+          _buildIssues(workOrder.getIssues(), _addWorkPerformed),
           Expanded(
               child: Align(
-                  alignment: Alignment.bottomCenter,
+                  alignment: FractionalOffset.bottomCenter,
                   child: _buildNavButtons(this, workOrder)))
         ])));
   }
-}
 
-Widget _buildCustomerInfo(BuildContext context, WorkOrder workOrder) {
-  return Container(
-      // height: 170,
-      child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-        Container(
-            width: 200,
-            margin: EdgeInsets.only(top: 10),
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 1),
-                borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Property Type: ' + workOrder.customer.propertyType),
-                if (workOrder.customer.propertyType != 'House')
-                  Text('Property Name: ' + workOrder.customer.propertyName),
-                Text('\nCustomer information:'),
-                Text(workOrder.customer.contactName +
-                    ', \n' +
-                    workOrder.customer.contactPhone),
-                Text(workOrder.customer.serviceAddress)
-              ],
-            )),
-        Container(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: <Widget>[
-            RaisedButton(
-              onPressed: null,
-              child: Text('Codes & Info', style: TextStyle(fontSize: 16)),
-            ),
-            SizedBox(height: 30),
-            RaisedButton(
-                onPressed: null,
-                child: Text('Checklists', style: TextStyle(fontSize: 16)))
-          ],
-        ))
-      ]));
-}
-
-Widget _buildIssues(
-    BuildContext context, List<Issue> issues, void workPerformed(int issueIndex)) {
-  return Container(
-      margin: EdgeInsets.only(top: 15, bottom: 15, left: 25, right: 25),
-      child: Column(
-        children: <Widget>[
-          Align(
-              alignment: Alignment.topLeft,
-              child: Text(
-                'Issues reported:\n',
-                style: TextStyle(fontSize: 18),
+  Widget _buildCustomerInfo(BuildContext context, WorkOrder workOrder) {
+    return Container(
+        // height: 170,
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+          Container(
+              width: 200,
+              margin: EdgeInsets.only(top: 10),
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 1),
+                  borderRadius: BorderRadius.circular(12)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Property Type: ' + workOrder.customer.propertyType),
+                  if (workOrder.customer.propertyType != 'House')
+                    Text('Property Name: ' + workOrder.customer.propertyName),
+                  Text('\nCustomer information:'),
+                  Text(workOrder.customer.contactName +
+                      ', \n' +
+                      workOrder.customer.contactPhone),
+                  Text(workOrder.customer.serviceAddress)
+                ],
               )),
-          //issues
-          //button leading to work done for that issue
-          LimitedBox(
-              maxHeight: 300,
-              child: ListView.separated(
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title:
-                          Text("Problem at " + issues[index].location + ':\n'),
-                      subtitle: Text(issues[index].problem),
-                      onTap: () => workPerformed(index),
-                    );
-                  },
-                  separatorBuilder: (context, index) {
-                    return Divider();
-                  },
-                  itemCount: issues.length))
+          Container(
+              child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              RaisedButton(
+                onPressed: null,
+                child: Text('Codes & Info', style: TextStyle(fontSize: 16)),
+              ),
+              SizedBox(height: 30),
+              RaisedButton(
+                  onPressed: null,
+                  child: Text('Checklists', style: TextStyle(fontSize: 16)))
+            ],
+          ))
+        ]));
+  }
+
+  Widget _buildIssues(List<Issue> issues, void workPerformed(int issueIndex)) {
+    return Container(
+        margin: EdgeInsets.only(top: 15, bottom: 15, left: 25, right: 25),
+        height: 300,
+        child: Column(
+          children: <Widget>[
+            Align(
+                alignment: Alignment.topLeft,
+                child: Text(
+                  'Issues reported:\n',
+                  style: TextStyle(fontSize: 18),
+                )),
+            LimitedBox(
+                maxHeight: 250,
+                child: ListView.separated(
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      final color =
+                          workOrder.issues.issues[index].resolution == ""
+                              ? Colors.red
+                              : Colors.green;
+                      return Container(
+                          color: color,
+                          child: ListTile(
+                            title: Text(
+                                "Problem at " + issues[index].location + ':\n'),
+                            subtitle: Text(issues[index].problem),
+                            onTap: () => workPerformed(index),
+                          ));
+                    },
+                    separatorBuilder: (context, index) {
+                      return Divider();
+                    },
+                    itemCount: issues.length))
+          ],
+        ));
+  }
+
+  Widget _buildNavButtons(_DetailScreenState state, WorkOrder workOrder) {
+    return Container(
+      margin: EdgeInsets.only(left: 15, right: 15, bottom: 25),
+      child: Row(
+        children: <Widget>[
+          // open google maps navigation button
+          RaisedButton(onPressed: null, child: Text('Navigate')),
+          Container(
+              child: _displayTimeStamps(
+                  this.workOrder.timeStarted, this.workOrder.timeEnded)),
+          Expanded(
+              child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _workOrderState(state, workOrder)))
         ],
-      ));
-}
+      ),
+    );
+  }
 
-Widget _buildNavButtons(_DetailScreenState state, WorkOrder workOrder) {
-  return Container(
-    margin: EdgeInsets.only(left: 15, right: 15, bottom: 25),
-    child: Row(
-      children: <Widget>[
-        // open google maps navigation button
-        RaisedButton(onPressed: null, child: Text('Navigate')),
-        Expanded(
-            child: Align(
-                alignment: Alignment.centerRight,
-                child: _workOrderState(state, workOrder)))
+  Widget _workOrderState(_DetailScreenState state, WorkOrder workOrder) {
+    if (workOrder.timeStarted == null)
+      return RaisedButton(
+          onPressed: state._setTimeStarted, child: Text('Start time'));
+    else if (workOrder.timeEnded == null)
+      return RaisedButton(
+          onPressed: state._setTimeEnded, child: Text('Stop time'));
+    else if (workOrder.timeStarted != null) {
+      return RaisedButton(
+          onPressed: () {
+            _submitWorkOrder(workOrder);
+          },
+          child: Text('Update'));
+    } else {
+      return RaisedButton(
+          onPressed: () {
+            _submitWorkOrder(workOrder);
+          },
+          child: Text('Submit'));
+    }
+  }
 
-        // start timer button
-        //
-      ],
-    ),
-  );
-}
+  Widget _displayTimeStamps(DateTime started, DateTime ended) {
+    String startedStr =
+        started == null ? "" : "${started.hour}:${started.minute}";
+    String endedStr = ended == null ? "" : "${ended.hour}:${ended.minute}";
+    String date = started == null
+        ? ""
+        : "${started.month}/${started.day}/${started.year}";
 
-Widget _workOrderState(_DetailScreenState state, WorkOrder workOrder) {
-  if (workOrder.timeStarted == null)
-    return RaisedButton(
-        onPressed: state._setTimeStarted, child: Text('Start time'));
-  else if (workOrder.timeEnded == null)
-    return RaisedButton(
-        onPressed: state._setTimeEnded, child: Text('Stop time'));
-  else
-    return RaisedButton(
-        onPressed: state._submitWorkOrder, child: Text('Submit'));
+    if (started == null) {
+      return Container();
+    }
+
+    return Container(
+        padding: EdgeInsets.only(left: 10),
+        child: Text(startedStr + " - " + endedStr + ", " + date));
+  }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:tech_companion_mobile/graphql/QueryMutation.dart';
+import 'package:tech_companion_mobile/http/HttpService.dart';
 
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
 import 'detailedServiceCall.dart';
@@ -12,6 +12,7 @@ class ServiceCallView extends StatefulWidget {
 
 class _ServiceCalls extends State<ServiceCallView> {
   QueryMutation queryMutation = QueryMutation();
+  final HttpService httpService = HttpService();
 
   @override
   Widget build(BuildContext context) {
@@ -19,31 +20,24 @@ class _ServiceCalls extends State<ServiceCallView> {
       appBar: AppBar(
         title: Text('Service calls'),
         ),
-      body: Query(
-        options: QueryOptions(
-          documentNode: gql(queryMutation.getIncomplete),
-          // variables: {},
-          pollInterval: 10,
-        ),
-        builder: (QueryResult result, {VoidCallback refetch, FetchMore fetchMore}) {
-          
-          if (result.loading) {
+      body: FutureBuilder(
+        future: httpService.getWorkOrders(), 
+        builder: (BuildContext context, AsyncSnapshot<List<WorkOrder>> snapshot) {
+          if (snapshot.hasData) {
+            List<WorkOrder> workOrders = snapshot.data;
+            return _serviceCallsView(workOrders);
+          } else if (snapshot.hasError) {
+            return Center(child: Text('An error has occurred'));
+          }
+          else {
             return Center(child: CircularProgressIndicator());
           }
-
-          if (result.data == null) {
-            return Center(child: Text('No service calls right now.'));
-          }
-
-          WorkOrders workOrders = new WorkOrders.fromJson(result.data['getIncompleteWorkOrders']);
-          return _serviceCallsView(workOrders.workOrders);
         },
       ),
     );
   }
 
   ListView _serviceCallsView(List<WorkOrder> workOrders) {
-    // final serviceCallList = result.data['getIncompleteWorkOrders'];
     return ListView.separated(
       itemCount: workOrders.length,
       itemBuilder: (context, index) {

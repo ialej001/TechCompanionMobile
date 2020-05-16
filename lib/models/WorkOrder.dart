@@ -1,7 +1,5 @@
 // model class for received data. also functions as the model for inputted data collection
 
-import 'package:flutter/material.dart';
-
 import 'Part.dart';
 
 class WorkOrders {
@@ -29,10 +27,9 @@ class WorkOrder {
   final Customer customer;
   Issues issues;
   final bool isComplete;
-  TimeOfDay timeStarted;
-  TimeOfDay timeEnded;
+  DateTime timeStarted;
+  DateTime timeEnded;
   List<Part> partsUsed;
-  List<String> workPerformed;
   
   WorkOrder({
     this.stringId,
@@ -42,7 +39,6 @@ class WorkOrder {
     this.timeStarted,
     this.timeEnded,
     this.partsUsed,
-    this.workPerformed
   });
 
   factory WorkOrder.fromJson(Map<String, dynamic> json) {
@@ -51,8 +47,9 @@ class WorkOrder {
       customer: Customer.fromJson(json['customer']),
       issues: Issues.fromJson(json['issues']),
       isComplete: json['isComplete'],
-      workPerformed: List<String>(),
-      partsUsed: List<Part>()
+      partsUsed: makePartsUsed(json['partsUsed']),
+      timeStarted: json['timeStarted'] ==  null ? null : DateTime.parse(json['timeStarted']),
+      timeEnded: json['timeEnded'] == null ? null : DateTime.parse(json['timeEnded'])
     );
   }
 
@@ -104,6 +101,10 @@ class Issues {
   int length() {
     return this.issues.length;
   }
+
+  Map<String, dynamic> toJson() => {
+    'issues': issues
+  };
 }
 
 class Issue {
@@ -121,8 +122,18 @@ class Issue {
     return new Issue(
       location: json['location'], 
       problem: json['problem'],
-      resolution: ""
+      resolution: json['resolution'] == null ? "" : json['resolution']
     );
+  }
+
+   Map<String, dynamic> toJson() => {
+    'location': this.location,
+    'problem': this.problem,
+    'resolution': this.resolution
+  };
+
+  String writeJson() {
+    return '{location: "$location", problem: "$problem", resolution: "$resolution"}';
   }
 }
 
@@ -132,4 +143,17 @@ class WorkDoneForIssue {
   int index;
 
   WorkDoneForIssue(this.partsUsed, this.workPerformed, this.index);
+}
+
+List<Part> makePartsUsed(json) {
+  if (json == null) {
+    return new List<Part>();
+  }
+
+  List<Part> partsUsed = new List<Part>();
+  for (int i = 0; i < json.length; i++) {
+    partsUsed.add(Part.fromJson(json[i]));
+  }
+
+  return partsUsed;
 }
