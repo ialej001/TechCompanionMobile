@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:tech_companion_mobile/database/blocs/blocProvider.dart';
-import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
+import 'package:tech_companion_mobile/bloc/blocProvider.dart';
+import 'package:tech_companion_mobile/bloc/partsBloc.dart';
 import 'package:tech_companion_mobile/graphql/GraphQLConf.dart';
 import 'package:tech_companion_mobile/views/Inventory.dart';
 import 'package:tech_companion_mobile/views/serviceCalls.dart';

@@ -1,10 +1,10 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:tech_companion_mobile/database/DatabaseProvider.dart';
-import 'package:tech_companion_mobile/database/blocs/blocProvider.dart';
-import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
+import 'package:tech_companion_mobile/bloc/partsBloc.dart';
+import 'package:tech_companion_mobile/http/HttpService.dart';
 import 'package:tech_companion_mobile/models/Part.dart';
+import 'package:tech_companion_mobile/repository/parts_repository.dart';
 
 class InventoryWindow extends StatefulWidget {
   InventoryWindow({Key key}) : super(key: key);
@@ -14,8 +14,10 @@ class InventoryWindow extends StatefulWidget {
 }
 
 class _InventoryWindow extends State<InventoryWindow> {
-  PartsBloc _partsBloc;
+  PartsBloc partsBloc = PartsBloc();
   List<Part> parts;
+  final HttpService httpService = HttpService();
+  final _partsRepository = PartsRepository();
 
   _InventoryWindow();
 
@@ -23,7 +25,7 @@ class _InventoryWindow extends State<InventoryWindow> {
   void initState() {
     super.initState();
 
-    _partsBloc = BlocProvider.of<PartsBloc>(context);
+    // _partsBloc = BlocProvider.of<PartsBloc>(context);
   }
 
   @override
@@ -52,6 +54,7 @@ class _InventoryWindow extends State<InventoryWindow> {
       child: Row(children: <Widget>[
         RaisedButton(
             onPressed: _queryServerForParts, child: Text('Sync database')),
+            RaisedButton(onPressed: _emptyPartsBloc, child: Text('Empty database')),
       ]),
     );
   }
@@ -61,12 +64,12 @@ class _InventoryWindow extends State<InventoryWindow> {
       height: 550,
       width: 460,
       padding: EdgeInsets.only(left: 10, right: 10),
-      child: StreamBuilder<List<Part>>(
-          stream: _partsBloc.parts,
+      child: StreamBuilder(
+          stream: partsBloc.parts,
           builder: (BuildContext context, AsyncSnapshot<List<Part>> snapshot) {
             if (snapshot.hasData) {
-              log(snapshot.data.length.toString());
-              return ListView.separated(
+              return snapshot.data.length != 0 ?
+               ListView.separated(
                 itemCount: snapshot.data.length,
                 itemBuilder: (context, index) {
                   Part part = snapshot.data[index];
@@ -93,25 +96,38 @@ class _InventoryWindow extends State<InventoryWindow> {
                 separatorBuilder: (context, index) {
                   return Divider();
                 },
-              );
+              )
+              : Container(
+                    child: Center(
+                  child: Text('No parts in database, please sync.'),
+                ));
             } else {
               return Container(
-                child: Text("no parts in database, please sync"),
+                child: Center(child: CircularProgressIndicator(),),
               );
             }
           }),
     );
   }
 
-  void _queryServerForParts() {
-    log('pressed');
-    DatabaseProvider.partsDb.getAllParts().then((List<Part> parts) {
-      if (parts.isEmpty) {
-        log('loading');
-        DatabaseProvider.partsDb.loadDatabase();
+  void _queryServerForParts() async {
+    
+    await _partsRepository.getAllParts().then((result) {
+      
+      if (result.isEmpty) {
+        httpService.getParts().then((value) {
+          value.forEach((part) {
+            partsBloc.addPart(part);
+          });
+        }).catchError((onError) {
+        });
       } else {
-        log('db initialized');
+        print('loaded');
       }
     });
+  }
+
+  void _emptyPartsBloc() async {
+    _partsRepository.deleteAllParts();
   }
 }

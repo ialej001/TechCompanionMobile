@@ -1,6 +1,3 @@
-import 'package:tech_companion_mobile/models/Part.dart';
-import 'package:tech_companion_mobile/models/WorkOrder.dart';
-
 class QueryMutation {
   String submitWorkOrder = """
     mutation(

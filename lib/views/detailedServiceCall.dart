@@ -1,8 +1,8 @@
 import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:tech_companion_mobile/database/blocs/blocProvider.dart';
-import 'package:tech_companion_mobile/database/blocs/partsBloc.dart';
+import 'package:tech_companion_mobile/bloc/blocProvider.dart';
+import 'package:tech_companion_mobile/bloc/partsBloc.dart';
 import 'package:tech_companion_mobile/http/HttpService.dart';
 import 'package:tech_companion_mobile/views/workDoneDialog.dart';
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
