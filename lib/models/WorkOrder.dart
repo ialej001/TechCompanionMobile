@@ -10,7 +10,6 @@ class WorkOrders {
   });
 
   factory WorkOrders.fromJson(List<dynamic> parsedJson) {
-    
     List<WorkOrder> workOrders = new List<WorkOrder>();
     workOrders = parsedJson.map((i) => WorkOrder.fromJson(i)).toList();
 
@@ -30,7 +29,7 @@ class WorkOrder {
   DateTime timeStarted;
   DateTime timeEnded;
   List<Part> partsUsed;
-  
+
   WorkOrder({
     this.stringId,
     this.customer,
@@ -43,13 +42,16 @@ class WorkOrder {
 
   factory WorkOrder.fromJson(Map<String, dynamic> json) {
     return new WorkOrder(
-      stringId: json['string_id'],
+      stringId: json['stringId'],
       customer: Customer.fromJson(json['customer']),
       issues: Issues.fromJson(json['issues']),
       isComplete: json['isComplete'],
       partsUsed: makePartsUsed(json['partsUsed']),
-      timeStarted: json['timeStarted'] ==  null ? null : DateTime.parse(json['timeStarted']),
-      timeEnded: json['timeEnded'] == null ? null : DateTime.parse(json['timeEnded'])
+      timeStarted: json['timeStarted'] == null
+          ? null
+          : DateTime.parse(json['timeStarted']),
+      timeEnded:
+          json['timeEnded'] == null ? null : DateTime.parse(json['timeEnded']),
     );
   }
 
@@ -59,37 +61,58 @@ class WorkOrder {
 }
 
 class Customer {
+  final String stringId;
   final String propertyName;
   final String serviceAddress;
   final String propertyType;
   final String contactName;
   final String contactPhone;
+  final String billingMethod;
+  final double laborRate;
+  final double taxRate;
 
-  Customer({
-    this.propertyName,
-    this.serviceAddress,
-    this.propertyType,
-    this.contactName,
-    this.contactPhone
-  });
+  Customer(
+      {this.stringId,
+      this.propertyName,
+      this.serviceAddress,
+      this.propertyType,
+      this.contactName,
+      this.contactPhone,
+      this.billingMethod,
+      this.laborRate,
+      this.taxRate});
 
   factory Customer.fromJson(Map<String, dynamic> json) {
+    print(json.toString());
     return new Customer(
-      propertyName: json['propertyName'],
-      propertyType: json['propertyType'],
-      serviceAddress: json['serviceAddress'],
-      contactName: json['contactName'],
-      contactPhone: json['contactPhone']
-    );
+        stringId: json['string_id'],
+        propertyName: json['propertyName'],
+        propertyType: json['propertyType'],
+        serviceAddress: json['serviceAddress'],
+        contactName: json['contactName'],
+        contactPhone: json['contactPhone'],
+        billingMethod: json['billingMethod'],
+        laborRate: (json['laborRate']),
+        taxRate: (json['taxRate']));
   }
+
+    Map<String, dynamic> toJson() => {
+      'string_id': this.stringId,
+      'propertyName': this.propertyName,
+      'serviceAddress': this.serviceAddress,
+      'propertyType': this.propertyType,
+      'contactName': this.contactName,
+      'contactPhone': this.contactPhone,
+      'billingMethod': this.billingMethod,
+      'laborRate': this.laborRate,
+      'taxRate': this.taxRate
+      };
 }
 
 class Issues {
   List<Issue> issues;
 
-  Issues({
-    this.issues
-  });
+  Issues({this.issues});
 
   factory Issues.fromJson(List<dynamic> json) {
     List<Issue> issues = new List<Issue>();
@@ -102,9 +125,7 @@ class Issues {
     return this.issues.length;
   }
 
-  Map<String, dynamic> toJson() => {
-    'issues': issues
-  };
+  Map<String, dynamic> toJson() => {'issues': issues};
 }
 
 class Issue {
@@ -112,25 +133,20 @@ class Issue {
   final String problem;
   String resolution;
 
-  Issue({
-    this.location,
-    this.problem,
-    this.resolution
-  });
+  Issue({this.location, this.problem, this.resolution});
 
   factory Issue.fromJson(Map<String, dynamic> json) {
     return new Issue(
-      location: json['location'], 
-      problem: json['problem'],
-      resolution: json['resolution'] == null ? "" : json['resolution']
-    );
+        location: json['location'],
+        problem: json['problem'],
+        resolution: json['resolution'] == null ? "" : json['resolution']);
   }
 
-   Map<String, dynamic> toJson() => {
-    'location': this.location,
-    'problem': this.problem,
-    'resolution': this.resolution
-  };
+  Map<String, dynamic> toJson() => {
+        'location': this.location,
+        'problem': this.problem,
+        'resolution': this.resolution
+      };
 
   String writeJson() {
     return '{location: "$location", problem: "$problem", resolution: "$resolution"}';

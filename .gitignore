@@ -1,3 +1,10 @@
+.dart_tool/
+.git/
+.idea/
+.vscode/
+build/
+ios/
+
 # Miscellaneous
 *.class
 *.log

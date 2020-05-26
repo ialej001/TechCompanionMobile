@@ -27,7 +27,8 @@ class _ServiceCalls extends State<ServiceCallView> {
             List<WorkOrder> workOrders = snapshot.data;
             return _serviceCallsView(workOrders);
           } else if (snapshot.hasError) {
-            return Center(child: Text('An error has occurred'));
+            print(snapshot.error);
+            return Center(child: Text(snapshot.error));
           }
           else {
             return Center(child: CircularProgressIndicator());
@@ -45,6 +46,7 @@ class _ServiceCalls extends State<ServiceCallView> {
           title: Text(workOrders[index].customer.contactName),
           subtitle: Text(workOrders[index].customer.serviceAddress),
           onTap: () {
+            // print(workOrders[index].customer.toString());
             Navigator.push(
             context,
             MaterialPageRoute(

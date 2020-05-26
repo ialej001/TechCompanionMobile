@@ -33,6 +33,7 @@ class _DetailScreenState extends State<DetailScreen> {
     setState(() {
       this.workOrder.timeEnded = new DateTime.now();
       debugPrint(workOrder.timeEnded.toString());
+      // debugPrint(workOrder.customer.billingMethod);
     });
   }
 
@@ -93,6 +94,7 @@ class _DetailScreenState extends State<DetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text('billing' + workOrder.customer.billingMethod),
                   Text('Property Type: ' + workOrder.customer.propertyType),
                   if (workOrder.customer.propertyType != 'House')
                     Text('Property Name: ' + workOrder.customer.propertyName),
