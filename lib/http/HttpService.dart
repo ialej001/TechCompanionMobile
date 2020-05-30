@@ -1,16 +1,15 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:http/http.dart';
 import 'package:tech_companion_mobile/models/Part.dart';
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
 
 class HttpService {
-  // final String url = "http://138.229.151.202:8080/api";
-  final String url = "http://10.0.2.2:8080/api";
+  final String url = "http://138.229.151.202:8080/api";
+  // final String url = "http://10.0.2.2:8080/api";
   final Map<String, String> headers = {"Content-type": "application/json"};
 
   Future<List<WorkOrder>> getWorkOrders() async {
-    Response res = await get("$url/incomplete/ivan");
+    Response res = await (get("$url/incomplete/ivan"));
 
     if (res.statusCode == 200) {
       List<dynamic> body = jsonDecode(res.body);

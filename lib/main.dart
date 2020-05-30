@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:tech_companion_mobile/bloc/blocProvider.dart';
-import 'package:tech_companion_mobile/bloc/partsBloc.dart';
 import 'package:tech_companion_mobile/graphql/GraphQLConf.dart';
 import 'package:tech_companion_mobile/views/Inventory.dart';
 import 'package:tech_companion_mobile/views/serviceCalls.dart';
+
+import 'bloc/partsBloc.dart';
+import 'views/LandingView.dart';
 
 GraphQLConfiguration graphQLConfiguration = GraphQLConfiguration();
 
@@ -16,21 +17,22 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return GraphQLProvider(
-        client: graphQLConfiguration.client,
-        child: MaterialApp(
-          title: 'TechCompanion',
-          theme: ThemeData(
-            primarySwatch: Colors.red,
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
-          home: MyHomePage(title: 'TechCompanion'),
-          routes: <String, WidgetBuilder>{
-            '/detailedService call': (BuildContext context) =>
-                ServiceCallView(),
-            '/inventory': (BuildContext context) => InventoryWindow(),
-          },
-        ));
+    return BlocProvider<PartsBloc>(
+      bloc: PartsBloc(),
+      child: MaterialApp(
+        title: 'TechCompanion',
+        theme: ThemeData(
+          primarySwatch: Colors.red,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        initialRoute: '/home',
+        routes: <String, WidgetBuilder>{
+          '/home': (context) => MyHomePage(title: 'TechCompanion'),
+          '/detailed-service-call': (context) => ServiceCallView(),
+          '/inventory': (context) => InventoryWindow(),
+        },
+      ),
+    );
   }
 }
 
@@ -53,89 +55,44 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int _selectedNavTab = 0;
+  static List<Widget> _navTabs = <Widget>[
+    LandingView(),
+    ServiceCallView(),
+    InventoryWindow(),
+  ];
 
-  void _incrementCounter() {
+  void _navTo(int index) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _selectedNavTab = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.red,
-              ),
-              child: Text(
-                'Where to?',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.build),
-              title: Text('Service Calls'),
-              onTap: () {
-                Navigator.popAndPushNamed(context, '/detailedService call');
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.work),
-              title: Text('Inventory'),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => BlocProvider(
-                            child: InventoryWindow(), bloc: PartsBloc())));
-              },
-            )
-          ],
-        ),
+      body: Container(
+        child: _navTabs.elementAt(_selectedNavTab),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+              icon: Icon(Icons.subject), title: Text('Home')),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.build),
+            title: Text('Service'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.work),
+            title: Text('Inventory'),
+          )
+        ],
+        currentIndex: _selectedNavTab,
+        onTap: _navTo,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
