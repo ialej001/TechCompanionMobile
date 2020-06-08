@@ -12,11 +12,13 @@ import 'package:tech_companion_mobile/views/ServiceCalls/ServiceCallTabs/Summary
 
 class DetailScreen extends StatefulWidget {
   final WorkOrder workorder;
+  final String jwt;
 
-  DetailScreen({Key key, @required this.workorder}) : super(key: key);
+  DetailScreen({Key key, @required this.workorder, this.jwt}) : super(key: key);
 
   @override
-  _DetailScreenState createState() => _DetailScreenState(workorder);
+  _DetailScreenState createState() =>
+      _DetailScreenState(this.workorder, this.jwt);
 }
 
 class _DetailScreenState extends State<DetailScreen>
@@ -26,8 +28,9 @@ class _DetailScreenState extends State<DetailScreen>
   Icon fabIcon = Icon(Icons.play_arrow);
   PartsBloc _partsBloc;
   bool showCompleteButton = false;
+  String jwt;
 
-  _DetailScreenState(this.workOrder);
+  _DetailScreenState(this.workOrder, this.jwt);
 
   // timer function
   void _toggleTimer() {
@@ -61,12 +64,13 @@ class _DetailScreenState extends State<DetailScreen>
     }
   }
 
-  void _submitWorkOrder(WorkOrder workOrder) {
+  void _submitWorkOrder(WorkOrder workOrder) async {
     HttpService httpService = HttpService();
+    var token = await httpService.storage.read(key: "jwt");
 
-    httpService.sendCompleteWorkOrder(workOrder).then((result) {
+    httpService.sendCompleteWorkOrder(token, workOrder).then((result) {
       if (result != 200) {
-        log('error');
+        log(result.toString());
         return;
       }
 

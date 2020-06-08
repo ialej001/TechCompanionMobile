@@ -1,19 +1,27 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:tech_companion_mobile/bloc/blocProvider.dart';
-import 'package:tech_companion_mobile/graphql/GraphQLConf.dart';
+import 'package:tech_companion_mobile/http/HttpService.dart';
+import 'package:tech_companion_mobile/views/Home.dart';
 import 'package:tech_companion_mobile/views/Inventory.dart';
+import 'package:tech_companion_mobile/views/LogIn.dart';
 import 'package:tech_companion_mobile/views/serviceCalls.dart';
-
 import 'bloc/partsBloc.dart';
-import 'views/LandingView.dart';
-
-GraphQLConfiguration graphQLConfiguration = GraphQLConfiguration();
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  final HttpService httpService = new HttpService();
+
+  Future<String> get jwtOrEmpty async {
+    var jwt = await httpService.storage.read(key: "jwt");
+    if (jwt == null) return "";
+    return jwt;
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -25,73 +33,35 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.red,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        initialRoute: '/home',
+        // initialRoute: '/login',
         routes: <String, WidgetBuilder>{
-          '/home': (context) => MyHomePage(title: 'TechCompanion'),
+          '/home': (context) => HomePage(title: 'TechCompanion'),
           '/detailed-service-call': (context) => ServiceCallView(),
           '/inventory': (context) => InventoryWindow(),
+          '/login': (context) => LoginPage(),
         },
-      ),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _selectedNavTab = 0;
-  static List<Widget> _navTabs = <Widget>[
-    LandingView(),
-    ServiceCallView(),
-    InventoryWindow(),
-  ];
-
-  void _navTo(int index) {
-    setState(() {
-      _selectedNavTab = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Container(
-        child: _navTabs.elementAt(_selectedNavTab),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-              icon: Icon(Icons.subject), title: Text('Home')),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.build),
-            title: Text('Service'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.work),
-            title: Text('Inventory'),
-          )
-        ],
-        currentIndex: _selectedNavTab,
-        onTap: _navTo,
+        home: FutureBuilder(
+          future: jwtOrEmpty,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return CircularProgressIndicator();
+            if (snapshot.data != "") {
+              var jwt = snapshot.data.split("."); // array[3]
+              if (jwt.length != 3) { // some wrong jwt
+                return LoginPage();
+              } else {
+                var payload = json.decode(
+                    ascii.decode(base64.decode(base64.normalize(jwt[1]))));
+                if (DateTime.fromMillisecondsSinceEpoch(payload["exp"] * 1000)
+                    .isAfter(DateTime.now())) {
+                  return HomePage(title: 'TechCompanion');
+                } else {
+                  return LoginPage();
+                }
+              }
+            } else
+              return LoginPage();
+          },
+        ),
       ),
     );
   }

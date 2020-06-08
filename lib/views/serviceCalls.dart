@@ -4,17 +4,28 @@ import 'package:tech_companion_mobile/models/WorkOrder.dart';
 import 'package:tech_companion_mobile/views/ServiceCalls/detailedServiceCall.dart';
 
 class ServiceCallView extends StatefulWidget {
+  ServiceCallView({Key key, this.jwt}) : super(key: key);
+  final String jwt;
   @override
-  State<StatefulWidget> createState() => _ServiceCalls();
+  State<StatefulWidget> createState() => _ServiceCalls(this.jwt);
 }
 
 class _ServiceCalls extends State<ServiceCallView> {
+    _ServiceCalls(this.jwt);
+
+  final String jwt;
   final HttpService httpService = HttpService();
   List<WorkOrder> workOrders = List<WorkOrder>();
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = new GlobalKey<RefreshIndicatorState>();
 
+  Future<String> getToken() async {
+    return httpService.storage.read(key: "jwt");
+  }
+  
   Future<List<WorkOrder>> _fetchWorkOrders() async {
-    return httpService.getWorkOrders();
+    String token = await getToken();
+    print(token);
+    return httpService.getWorkOrders(token);
   }
 
   Future<void> _refreshCalls() async {
@@ -30,10 +41,10 @@ class _ServiceCalls extends State<ServiceCallView> {
       future: _fetchWorkOrders(),
       builder: (BuildContext context, AsyncSnapshot<List<WorkOrder>> snapshot) {
         if (snapshot.hasData) {
+          print(snapshot.data);
           workOrders = snapshot.data;
           return _serviceCallsView(workOrders);
         } else if (snapshot.hasError) {
-          print(snapshot.error);
           return Center(child: Text(snapshot.error));
         } else {
           return Center(child: CircularProgressIndicator());
@@ -57,6 +68,7 @@ class _ServiceCalls extends State<ServiceCallView> {
                 MaterialPageRoute(
                   builder: (_) => DetailScreen(
                     workorder: workOrders[index],
+                    jwt: jwt,
                   ),
                 ),
               );
