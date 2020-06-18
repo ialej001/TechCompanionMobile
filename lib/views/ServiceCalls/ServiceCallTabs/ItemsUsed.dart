@@ -40,9 +40,11 @@ class _ItemsUsedView extends State<ItemsUsed> {
     return Container(
       margin: EdgeInsets.only(top: 15),
       width: MediaQuery.of(context).size.width,
+      // our parts bloc is consumed as a stream
       child: StreamBuilder<List<Part>>(
         stream: partsBloc.parts,
         builder: (BuildContext context, AsyncSnapshot<List<Part>> snapshot) {
+          // data in the stream
           if (snapshot.hasData) {
             List<Part> parts = snapshot.data;
             return AutoCompleteTextField<Part>(
@@ -63,7 +65,9 @@ class _ItemsUsedView extends State<ItemsUsed> {
               clearOnSubmit: true,
               key: key,
               suggestions: parts,
+              // max suggestions
               suggestionsAmount: 10,
+              // length of input required to show results
               minLength: 3,
               itemBuilder: (context, item) {
                 return Container(
@@ -101,20 +105,22 @@ class _ItemsUsedView extends State<ItemsUsed> {
     );
   }
 
+  // this is our widget that displays the parts that have been selected
   Widget _partsListView(List<Part> parts) {
     if (parts.isNotEmpty) {
       return Expanded(
-        // padding: EdgeInsets.only(top: 10),
-        // height: 300,
         child: Padding(
           padding: EdgeInsets.only(top: 10, bottom: 30),
+          // .builder method allows us to use custom tiles
           child: ListView.builder(
             itemCount: parts.length,
             itemBuilder: (context, index) {
               final part = parts[index];
+              // dismissible allows the user to remove an item from the list
               return Dismissible(
                 key: Key(part.partNumber),
                 child: ListTile(
+                  // minus button
                   leading: Container(
                     width: 48,
                     height: 48,
@@ -130,6 +136,7 @@ class _ItemsUsedView extends State<ItemsUsed> {
                   ),
                   title: Text(part.description),
                   subtitle: Text("Quantity Used: " + part.quantity.toString()),
+                  // plus button
                   trailing: Container(
                     width: 48,
                     height: 48,

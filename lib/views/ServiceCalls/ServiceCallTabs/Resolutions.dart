@@ -5,7 +5,8 @@ import 'package:tech_companion_mobile/models/Part.dart';
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
 
 class Resolutions extends StatefulWidget {
-  Resolutions({Key key, this.issues, this.partsUsed, this.partsBloc}) : super(key: key);
+  Resolutions({Key key, this.issues, this.partsUsed, this.partsBloc})
+      : super(key: key);
 
   final List<Issue> issues;
   final List<Part> partsUsed;
@@ -20,7 +21,7 @@ class _ResolutionsView extends State<Resolutions> {
   List<Issue> issues;
   List<Part> partsUsed;
   PartsBloc partsBloc;
-  
+
   // final _formKey = GlobalKey<FormState>();
 
   // text controllers
@@ -29,6 +30,8 @@ class _ResolutionsView extends State<Resolutions> {
 
   _ResolutionsView(this.issues, this.partsUsed, this.partsBloc);
 
+  // this is our dialog builder that is called when an issue block is tapped
+  // allows our user to input what work they did for that issue
   Future<void> _openResolutionForm(int index) async {
     String inputtedText;
     return showDialog<void>(
@@ -39,8 +42,11 @@ class _ResolutionsView extends State<Resolutions> {
           title: Text('What was wrong?'),
           content: Container(
             child: TextFormField(
+              // most of the time this is empty, but if something is there, show it
               initialValue: issues[index].resolution,
+              // character limit
               maxLength: 500,
+              // keyboard with new line for the 'enter' button
               keyboardType: TextInputType.multiline,
               autofocus: false,
               maxLines: null,
@@ -60,18 +66,22 @@ class _ResolutionsView extends State<Resolutions> {
             ),
           ),
           actions: <Widget>[
+            // our cancel button
             FlatButton(
               onPressed: () {
                 setState(() {
+                  // clear any inputted text, regardless if it's filled or not
                   issues[index].resolution = '';
                 });
                 Navigator.of(context).pop();
               },
               child: Text('Cancel'),
             ),
+            // complete button
             FlatButton(
               onPressed: () {
                 setState(() {
+                  // commit our changes to the work order object
                   issues[index].resolution = inputtedText;
                 });
                 Navigator.of(context).pop();
@@ -115,10 +125,11 @@ class _ResolutionsView extends State<Resolutions> {
 
   Widget _buildIssues(List<Issue> issues) {
     return Expanded(
-      // maxHeight: 250,
       child: ListView.separated(
           shrinkWrap: true,
           itemBuilder: (context, index) {
+            // for each tile to be rendered, check if it's been 'resolved', ie empty string
+            // red for incomplete, green for complete
             final color =
                 issues[index].resolution == "" ? Colors.red : Colors.green;
             return Container(
@@ -136,6 +147,4 @@ class _ResolutionsView extends State<Resolutions> {
           itemCount: issues.length),
     );
   }
-
-
 }

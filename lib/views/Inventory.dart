@@ -16,14 +16,11 @@ class _InventoryWindow extends State<InventoryWindow> {
   List<Part> parts;
   final HttpService httpService = HttpService();
   final _partsRepository = PartsRepository();
-
   _InventoryWindow();
 
   @override
   void initState() {
     super.initState();
-
-    // _partsBloc = BlocProvider.of<PartsBloc>(context);
   }
 
   @override
@@ -100,9 +97,11 @@ class _InventoryWindow extends State<InventoryWindow> {
   }
 
   void _queryServerForParts() async {
+    var token = await httpService.storage.read(key: "jwt");
+    print(token);
     await _partsRepository.getAllParts().then((result) {
       if (result.isEmpty) {
-        httpService.getParts().then((value) {
+        httpService.getParts(token).then((value) {
           value.forEach((part) {
             partsBloc.addPart(part);
           });

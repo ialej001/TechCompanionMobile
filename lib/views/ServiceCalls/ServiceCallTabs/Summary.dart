@@ -36,7 +36,7 @@ class _SummaryView extends State<Summary> {
             ),
           ),
           Expanded(
-            // spacer - possible parts summary?
+            // spacer - TODO: possible parts summary?
             flex: 2,
             child: Container(),
           ),
@@ -74,7 +74,7 @@ class _SummaryView extends State<Summary> {
       message = "Time Ended:\nIn progress";
     } else {
       String timeEndedFormatted =
-          new DateFormat("jm").format(workOrder.timeStarted);
+          new DateFormat("jm").format(workOrder.timeEnded);
       message = 'Time Ended:\n' + timeEndedFormatted;
     }
 
@@ -90,25 +90,30 @@ class _SummaryView extends State<Summary> {
   }
 
   Widget _buildPriceSummary(WorkOrder workOrder) {
-    // do necessary calculations
     // get our subtotal from all parts used
-    workOrder.subTotal = 0;
+    workOrder.subTotal = 0.0;
     if (workOrder.partsUsed.isNotEmpty) {
       workOrder.partsUsed.forEach((part) {
+        // prices are doubles, quantity is an int
         workOrder.subTotal += part.price * part.quantity;
       });
     }
     // get labor charge based on time taken
     if (workOrder.timeStarted != null && workOrder.timeEnded != null) {
+      // find how long the tech was at the job in minutes
       Duration timeDuration =
           workOrder.timeEnded.difference(workOrder.timeStarted);
       int totalTime = timeDuration.inMinutes;
-      // int totalTime = 91;
+
+      // any call up to an hour is fixed to the rate
       if (totalTime <= 60)
         workOrder.labor = workOrder.customer.laborRate;
+      // otherwise time is prorated after the first hour every half hour
       else {
         int remainingTime = totalTime -= 60;
         double multiplier = 1;
+        // find how many 'half hour chunks' were used. if a call took 91 min,
+        // multiplier will be 2.0: 60 + 30/30 + 1/30
         while (remainingTime > 0) {
           multiplier += 0.5;
           remainingTime -= 30;
@@ -120,8 +125,9 @@ class _SummaryView extends State<Summary> {
     // get our tax based on subtotal
     workOrder.tax = workOrder.subTotal * (workOrder.customer.taxRate / 100);
 
-    // finall, our total
+    // finally, our total
     workOrder.total = workOrder.subTotal + workOrder.labor + workOrder.tax;
+
     // return our widget
     return Expanded(
       flex: 2,

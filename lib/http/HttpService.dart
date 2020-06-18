@@ -5,11 +5,12 @@ import 'package:http/http.dart';
 import 'package:tech_companion_mobile/models/LoginResponse.dart';
 import 'package:tech_companion_mobile/models/Part.dart';
 import 'package:tech_companion_mobile/models/WorkOrder.dart';
-import 'package:tech_companion_mobile/views/LogIn.dart';
 
+// all of our http functions are here
 class HttpService {
-  // final String url = "http://138.229.151.202:8080/api";
-  final String url = "http://10.0.2.2:8080/api";
+  final String url = "http://advancedaccess.dyndns.tv:8080/api";
+  // final String url = "http://10.0.2.2:8080/api";
+
   // storage for key
   final storage = FlutterSecureStorage();
   final token = "";
@@ -35,20 +36,18 @@ class HttpService {
 
   void logOut(BuildContext context) async {
     storage.delete(key: "jwt");
-    // make logout call to server once implemented
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => LoginPage(),
-      ),
-    );
+    // TODO: make logout call to server once implemented
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.of(context).pushReplacementNamed("/");
   }
 
-  // TODO: attach jwt to all queries
+  // ran on service tab navigation and pull down refresh
   Future<List<WorkOrder>> getWorkOrders(String token) async {
     Map<String, String> authHeader = {"Authorization": "Bearer $token"};
 
     Response res = await (get("$url/incomplete/ivan", headers: authHeader));
     if (res.statusCode == 200) {
+      // deserialize into our workorder class
       List<dynamic> body = jsonDecode(res.body);
 
       List<WorkOrder> workOrders = body
@@ -67,7 +66,10 @@ class HttpService {
   }
 
   sendCompleteWorkOrder(String token, WorkOrder workOrder) async {
+    // for the url parameter
     String id = workOrder.stringId;
+
+    // our body
     final json = jsonEncode({
       "stringId": workOrder.stringId,
       "issues": workOrder.issues.issues,
@@ -76,21 +78,24 @@ class HttpService {
       "timeEnded": workOrder.timeEnded.toIso8601String(),
       "customer": workOrder.customer
     });
+
+    // our header
     Map<String, String> authHeader = {
       "Content-type": "application/json",
       "Authorization": "Bearer $token"
     };
 
-    print(authHeader);
     Response res =
         await put("$url/complete/$id", headers: authHeader, body: json);
 
-    print(res.body);
+    // return our status code for the parent widget to handle
     return res.statusCode;
   }
 
-  Future<List<Part>> getParts() async {
-    Response res = await get("$url/parts/all");
+  // fetch our parts list from the server
+  Future<List<Part>> getParts(String token) async {
+    Map<String, String> authHeader = {"Authorization": "Bearer $token"};
+    Response res = await (get("$url/parts/all", headers: authHeader));
 
     if (res.statusCode == 200) {
       List<dynamic> body = jsonDecode(res.body);

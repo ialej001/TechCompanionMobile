@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:tech_companion_mobile/http/HttpService.dart';
 import 'package:tech_companion_mobile/views/LandingView.dart';
 import 'package:tech_companion_mobile/views/serviceCalls.dart';
-
 import 'Inventory.dart';
 
+// stateful because navigation controller requries it
 class HomePage extends StatefulWidget {
   HomePage({Key key, this.title, this.jwt}) : super(key: key);
 
@@ -32,6 +32,8 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // our logout confirmation dialog. Give our users a chance to back out
+  // important to know that this dialog is another widget on the navigation stack
   void logoutConfirmDialog(context, title, text) => showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -47,9 +49,10 @@ class _HomePageState extends State<HomePage> {
             FlatButton(
               child: Text("Log out"),
               onPressed: () {
+                // logout() handles our navigator pops
                 HttpService().logOut(context);
               },
-            )
+            ),
           ],
         ),
       );
@@ -67,7 +70,9 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-              icon: Icon(Icons.subject), title: Text('Home')),
+            icon: Icon(Icons.subject),
+            title: Text('Home'),
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.build),
             title: Text('Service'),
@@ -83,6 +88,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // use a menu because eventually we want to add a global app settings option
   Widget _moreOptions(BuildContext context) {
     return PopupMenuButton<int>(
       itemBuilder: (context) => [

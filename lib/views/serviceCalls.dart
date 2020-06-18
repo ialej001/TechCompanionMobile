@@ -11,20 +11,20 @@ class ServiceCallView extends StatefulWidget {
 }
 
 class _ServiceCalls extends State<ServiceCallView> {
-    _ServiceCalls(this.jwt);
+  _ServiceCalls(this.jwt);
 
   final String jwt;
   final HttpService httpService = HttpService();
   List<WorkOrder> workOrders = List<WorkOrder>();
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = new GlobalKey<RefreshIndicatorState>();
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      new GlobalKey<RefreshIndicatorState>();
 
   Future<String> getToken() async {
     return httpService.storage.read(key: "jwt");
   }
-  
+
   Future<List<WorkOrder>> _fetchWorkOrders() async {
     String token = await getToken();
-    print(token);
     return httpService.getWorkOrders(token);
   }
 
@@ -38,11 +38,12 @@ class _ServiceCalls extends State<ServiceCallView> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
+      // by using the function this way, each time the widget is built, we make a server call
       future: _fetchWorkOrders(),
       builder: (BuildContext context, AsyncSnapshot<List<WorkOrder>> snapshot) {
         if (snapshot.hasData) {
-          print(snapshot.data);
           workOrders = snapshot.data;
+          // see below for details
           return _serviceCallsView(workOrders);
         } else if (snapshot.hasError) {
           return Center(child: Text(snapshot.error));
@@ -53,12 +54,15 @@ class _ServiceCalls extends State<ServiceCallView> {
     );
   }
 
-  Widget _serviceCallsView(List<WorkOrder> workOrders, ) {
+  Widget _serviceCallsView(List<WorkOrder> workOrders) {
+    // wrap everything with the pull down refresh widget for manual data refresh
     return RefreshIndicator(
       key: _refreshIndicatorKey,
+      // separated listview for separation lines, TODO: upgrade to animated
       child: ListView.separated(
         itemCount: workOrders.length,
         itemBuilder: (context, index) {
+          // return a standard two line list tile. TODO: make a custom list tile
           return ListTile(
             title: Text(workOrders[index].customer.contactName),
             subtitle: Text(workOrders[index].customer.serviceAddress),
@@ -79,7 +83,9 @@ class _ServiceCalls extends State<ServiceCallView> {
           return Divider();
         },
       ),
-      onRefresh: () { return _refreshCalls();},
+      onRefresh: () {
+        return _refreshCalls();
+      },
     );
   }
 }

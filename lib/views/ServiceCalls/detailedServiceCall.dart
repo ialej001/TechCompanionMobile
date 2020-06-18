@@ -32,24 +32,29 @@ class _DetailScreenState extends State<DetailScreen>
 
   _DetailScreenState(this.workOrder, this.jwt);
 
-  // timer function
+  // our time stamp function: has three different states
   void _toggleTimer() {
+    // after the clock has been stopped
     if (workOrder.timeEnded != null) {
+      // prevent the user from submitting an unresolved work order
       for (Issue issue in workOrder.issues.issues) {
         if (issue.resolution == "") {
           return;
         }
-        setState(() {
-          showCompleteButton = true;
-        });
-
-        return;
       }
+      // otherwise let's update the state to display the submit button
+      setState(() {
+        showCompleteButton = true;
+      });
+
+      return;
     }
-    // start state
+    // start/stop the clock
     if (!isTimerRunning) {
+      // starting
       setState(() {
         isTimerRunning = true;
+        // change our icon to the stop symbol
         fabIcon = Icon(Icons.stop);
         if (workOrder.timeStarted == null) {
           workOrder.timeStarted = new DateTime.now();
@@ -58,6 +63,7 @@ class _DetailScreenState extends State<DetailScreen>
     } else {
       setState(() {
         isTimerRunning = false;
+        // change our icon to the check symbol
         fabIcon = Icon(Icons.check);
         workOrder.timeEnded = new DateTime.now();
       });
@@ -66,14 +72,18 @@ class _DetailScreenState extends State<DetailScreen>
 
   void _submitWorkOrder(WorkOrder workOrder) async {
     HttpService httpService = HttpService();
+    // grab our token from the storage
     var token = await httpService.storage.read(key: "jwt");
 
+    // TODO: add a catch handler for errors
     httpService.sendCompleteWorkOrder(token, workOrder).then((result) {
       if (result != 200) {
         log(result.toString());
         return;
       }
 
+      // TODO: return our completed data
+      // removes this widget off the navigation stack going back to 'Home: ServiceCalls'
       Navigator.of(context).pop();
     });
   }
@@ -99,6 +109,7 @@ class _DetailScreenState extends State<DetailScreen>
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: tabs.length);
+    // instantiate our parts bloc that was provided to the entire app in the main widget
     _partsBloc = BlocProvider.of<PartsBloc>(context);
   }
 
@@ -121,6 +132,9 @@ class _DetailScreenState extends State<DetailScreen>
             tabs: tabs,
           ),
         ),
+        // when a user flips through the different tabs, the underlying
+        // workorder is the *same* reference. changes made in one widget is 
+        // reflected across the others
         body: TabBarView(
           children: [
             CustomerInfo(
@@ -146,6 +160,7 @@ class _DetailScreenState extends State<DetailScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
+                // ternary statement to show/hide our 'complete' button
                 showCompleteButton
                     ? FlatButton(
                         child: Text('Complete'),
@@ -158,36 +173,18 @@ class _DetailScreenState extends State<DetailScreen>
             ),
           ),
         ),
+        // our red button on the bottom dock
         floatingActionButton: FloatingActionButton(
           onPressed: () => _toggleTimer(),
           child: fabIcon,
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        // prevent flutter from redrawing the view to include the bottom portion of this
+        // widget when a keyboard is being used
         resizeToAvoidBottomInset: false,
       ),
     );
   }
-
-  // Widget _showCompleteButton(WorkOrder workOrder) {
-  //   // determine if all issues are done, assume all are completed
-  //   // go through each issue, if any resolution fields are empty,
-  //   // exit the function with an empty container
-  //   for (Issue issue in workOrder.issues.issues) {
-  //     if (issue.resolution == "") {
-  //       return Container();
-  //     }
-  //   }
-
-  //   // if the loop completes, then we can show our submission button
-  //   // if time has ended
-  //   if (workOrder.timeEnded != null) {
-  //     return
-  //     ;
-  //   }
-
-  //   // if the timer is still running, just display nothing
-  //   return Container();
-  // }
 
   Text _getTitle(String propertyType, String propertyName) {
     if (propertyName == "")
