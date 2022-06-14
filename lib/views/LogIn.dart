@@ -35,7 +35,6 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.red,
-      resizeToAvoidBottomPadding: false,
       body: Column(
         children: <Widget>[
           // expanded so we maintain ratio between the widgets in the column

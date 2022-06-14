@@ -1,20 +1,6 @@
-<<<<<<< HEAD
-# tech_companion_mobile
+# Tech Companion Mobile
 
-A new Flutter project.
+Created for Advanced Access Systems, Inc.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
-# flutterAndroid
->>>>>>> 54ec839537dc413aa77bafcc51d13bf8e160e988
+This mobile app allowed field technicians to access open work orders that have been assigned by users of [Tech Companion Desktop](https://github.com/ialej001/TechCompanionDesktop).
+It communicates solely to [Tech Companion Server](https://github.com/ialej001/TechCompanionServer)

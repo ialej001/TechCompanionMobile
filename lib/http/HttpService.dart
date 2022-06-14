@@ -8,8 +8,8 @@ import 'package:tech_companion_mobile/models/WorkOrder.dart';
 
 // all of our http functions are here
 class HttpService {
-  final String url = "http://advancedaccess.dyndns.tv:8080/api";
-  // final String url = "http://10.0.2.2:8080/api";
+  // final String url = "http://advancedaccess.dyndns.tv:8080/api";
+  final String url = "http://10.0.2.2:8080/api";
 
   // storage for key
   final storage = FlutterSecureStorage();
@@ -26,7 +26,7 @@ class HttpService {
   }
 
   Future<String> attemptLogIn(String name, String pass) async {
-    Response res = await post("$url/auth/login",
+    Response res = await post(Uri.parse("$url/auth/login"),
         headers: loginHeader,
         body: jsonEncode({"username": name, "password": pass}));
     String token = LoginResponse.fromJson(jsonDecode(res.body)).token;
@@ -45,7 +45,8 @@ class HttpService {
   Future<List<WorkOrder>> getWorkOrders(String token) async {
     Map<String, String> authHeader = {"Authorization": "Bearer $token"};
 
-    Response res = await (get("$url/incomplete/ivan", headers: authHeader));
+    Response res =
+        await (get(Uri.parse("$url/incomplete/ivan"), headers: authHeader));
     if (res.statusCode == 200) {
       // deserialize into our workorder class
       List<dynamic> body = jsonDecode(res.body);
@@ -85,8 +86,8 @@ class HttpService {
       "Authorization": "Bearer $token"
     };
 
-    Response res =
-        await put("$url/complete/$id", headers: authHeader, body: json);
+    Response res = await put(Uri.parse("$url/complete/$id"),
+        headers: authHeader, body: json);
 
     // return our status code for the parent widget to handle
     return res.statusCode;
@@ -95,7 +96,8 @@ class HttpService {
   // fetch our parts list from the server
   Future<List<Part>> getParts(String token) async {
     Map<String, String> authHeader = {"Authorization": "Bearer $token"};
-    Response res = await (get("$url/parts/all", headers: authHeader));
+    Response res =
+        await (get(Uri.parse("$url/parts/all"), headers: authHeader));
 
     if (res.statusCode == 200) {
       List<dynamic> body = jsonDecode(res.body);

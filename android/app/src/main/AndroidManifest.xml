@@ -2,7 +2,7 @@
     package="com.example.tech_companion_mobile">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:name="io.flutter.app.FlutterApplication"
+        android:name="${applicationName}"
         android:label="tech_companion_mobile"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -40,13 +40,13 @@ class _HomePageState extends State<HomePage> {
           title: Text(title),
           content: Text(text),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text("Go back"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text("Log out"),
               onPressed: () {
                 // logout() handles our navigator pops
@@ -71,15 +71,15 @@ class _HomePageState extends State<HomePage> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.subject),
-            title: Text('Home'),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.build),
-            title: Text('Service'),
+            label: 'Service',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.work),
-            title: Text('Inventory'),
+            label: 'Inventory',
           )
         ],
         currentIndex: _selectedNavTab,
